@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Health Risk Tracker
 
 A full-stack web app that predicts a person's health risk level (Low / Moderate / High)
@@ -115,3 +116,7 @@ general adults:
 
 These are simplified, general-purpose ranges (not adjusted for age, sex, pregnancy,
 or existing conditions) used only to generate training labels for the demo model.
+=======
+# health-predictor
+End-to-end Machine Learning project with FastAPI backend for lifestyle disease prediction using Python, Scikit-learn, and REST APIs.
+>>>>>>> 846e11d60d4bd84cd140c382b501d9e0bf467cee
