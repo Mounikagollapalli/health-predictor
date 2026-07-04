@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Risk Tracker</title>
+min to max value to enter number in them
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <span class="topbar__mark">＋</span>
+      <h1 class="topbar__title">Health Risk Tracker</h1>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- ============ LEFT: FORM ============ -->
+    <section class="panel panel--form" aria-labelledby="form-heading">
+      <h2 id="form-heading" class="panel__heading">New reading</h2>
+      <p class="panel__sub">Enter a person's details and latest blood markers to log a reading and get a risk estimate.</p>
+
+      <form id="patient-form" novalidate>
+
+        <div class="field-group">
+          <h3 class="field-group__label">Who</h3>
+
+          <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="e.g. Asha Rao" required />
+            <p class="field__error" data-error-for="name"></p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="dob">Date of birth</label>
+              <input type="date" id="dob" name="dob" required />
+              <p class="field__error" data-error-for="dob"></p>
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="name@example.com" required />
+              <p class="field__error" data-error-for="email"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <h3 class="field-group__label">Blood markers</h3>
+
+          <div class="field-row field-row--three">
+            <div class="field">
+              <label for="glucose">Glucose <span class="unit">mg/dL</span></label>
+              <input type="number" id="glucose" name="glucose" step="0.1" min="0" placeholder="e.g. 95" required />
+              <p class="field__error" data-error-for="glucose"></p>
+            </div>
+            <div class="field">
+              <label for="haemoglobin">Haemoglobin <span class="unit">g/dL</span></label>
+              <input type="number" id="haemoglobin" name="haemoglobin" step="0.1" min="0" placeholder="e.g. 14.2" required />
+              <p class="field__error" data-error-for="haemoglobin"></p>
+            </div>
+            <div class="field">
+              <label for="cholesterol">Cholesterol <span class="unit">mg/dL</span></label>
+              <input type="number" id="cholesterol" name="cholesterol" step="0.1" min="0" placeholder="e.g. 180" required />
+              <p class="field__error" data-error-for="cholesterol"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" id="submit-btn" class="btn btn--primary">
+            <span class="btn__label">Save &amp; predict risk</span>
+          </button>
+          <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============ RIGHT: RESULT + HISTORY ============ -->
+    <section class="panel panel--result" aria-labelledby="result-heading">
+
+      <div id="result-empty" class="result-empty">
+        <div class="result-empty__gauge" aria-hidden="true">
+          <div class="gauge gauge--placeholder">
+            <div class="gauge__zone gauge__zone--low"></div>
+            <div class="gauge__zone gauge__zone--moderate"></div>
+            <div class="gauge__zone gauge__zone--high"></div>
+          </div>
+        </div>
+        <p>Submit a reading to see the predicted risk level here.</p>
+      </div>
+
+      <div id="result-content" class="result-content" hidden>
+        <h2 id="result-heading" class="panel__heading">Latest result</h2>
+
+        <div class="risk-card">
+          <div class="risk-card__top">
+            <span class="risk-card__badge" id="risk-badge">—</span>
+            <span class="risk-card__confidence" id="risk-confidence"></span>
+          </div>
+
+          <div class="gauge" id="gauge" aria-hidden="true">
+            <div class="gauge__zone gauge__zone--low"></div>
+            <div class="gauge__zone gauge__zone--moderate"></div>
+            <div class="gauge__zone gauge__zone--high"></div>
+            <div class="gauge__marker" id="gauge-marker"></div>
+          </div>
+          <div class="gauge__labels">
+            <span>Low</span><span>Moderate</span><span>High</span>
+          </div>
+
+          <dl class="risk-card__breakdown" id="risk-breakdown"></dl>
+        </div>
+
+        <div class="history">
+          <div class="history__head">
+            <h3>History for <span id="history-name">—</span></h3>
+          </div>
+          <ul class="history__list" id="history-list"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ ALL PATIENTS (CRUD) ============ -->
+  <section class="panel panel--people" aria-labelledby="people-heading">
+    <div class="people__head">
+      <h2 id="people-heading" class="panel__heading">All people</h2>
+      <button id="refresh-btn" class="btn btn--ghost" type="button">Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table class="people-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>DOB</th>
+            <th>Latest risk</th>
+            <th>Last reading</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="people-tbody">
+          <tr class="people-table__empty"><td colspan="6">No records yet — add your first reading above.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ EDIT MODAL ============ -->
+  <dialog id="edit-dialog" class="dialog">
+    <form id="edit-form" class="dialog__form">
+      <h2>Edit person</h2>
+      <div class="field">
+        <label for="edit-name">Name</label>
+        <input type="text" id="edit-name" required />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="edit-dob">Date of birth</label>
+          <input type="date" id="edit-dob" required />
+        </div>
+        <div class="field">
+          <label for="edit-email">Email</label>
+          <input type="email" id="edit-email" required />
+        </div>
+      </div>
+      <p class="field__error" id="edit-error"></p>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" id="edit-cancel">Cancel</button>
+        <button type="submit" class="btn btn--primary">Save changes</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ============ ADD READING MODAL ============ -->
+  <dialog id="reading-dialog" class="dialog">
+    <form id="reading-form" class="dialog__form">
+      <h2>Add reading for <span id="reading-dialog-name"></span></h2>
+      <div class="field-row field-row--three">
+        <div class="field">
+          <label for="reading-glucose">Glucose <span class="unit">mg/dL</span></label>
+          <input type="number" id="reading-glucose" step="0.1" min="0" required />
+        </div>
+        <div class="field">
+          <label for="reading-haemoglobin">Haemoglobin <span class="unit">g/dL</span></label>
+          <input type="number" id="reading-haemoglobin" step="0.1" min="0" required />
+        </div>
+        <div class="field">
+          <label for="reading-cholesterol">Cholesterol <span class="unit">mg/dL</span></label>
+          <input type="number" id="reading-cholesterol" step="0.1" min="0" required />
+        </div>
+      </div>
+      <p class="field__error" id="reading-error"></p>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--ghost" id="reading-cancel">Cancel</button>
+        <button type="submit" class="btn btn--primary">Save reading</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
